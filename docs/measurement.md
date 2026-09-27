@@ -9,6 +9,7 @@ The public comparison client calls **your upstream** and **your existing Mithran
 - Use a public HTTPS, stateless MCP server that returns JSON rather than SSE for this comparison. The script rejects sessions and unsupported responses.
 - Set `MCP_UPSTREAM_URL` to the original upstream URL and `MITHRANDIR_GATEWAY_URL` to the issued `/gateway/<id>/mcp` URL. They are different endpoints. If direct upstream access needs a credential, set the **full** `MCP_UPSTREAM_AUTHORIZATION` header in a trusted environment. The script never sends that value to the gateway.
 - Set `MCP_TOOL` to the approved tool name. `MCP_ARGS_JSON` must be one JSON object accepted by that tool. The script prompts for the Mithrandir key if `MITHRANDIR_API_KEY` is unset.
+- The raw comparison script authenticates with a Mithrandir API key; it does not run a browser OAuth flow. OAuth-capable clients can use the same gateway URL with browser consent for normal use. Use `--protocol 2026-07-28` only when **both** the upstream and the gateway support the stateless 2026 wire revision. The default is the widely used 2025-06-18 handshake; each leg follows a supported server counteroffer within the handshake era.
 
 On Windows PowerShell, for example:
 
@@ -33,12 +34,17 @@ Replace the tool and arguments with a valid read call. The script prompts for th
 | `route: reuse` | With an existing Optimize entitlement, a response was delivered without that upstream call. |
 | `route: verification_match` or `verification_mismatch` | Reliability check called the upstream; a mismatch serves the fresh result. |
 | `receipt_id` | Identifier for the gateway's authenticated proof receipt; no third-party attestation is implied. |
+| `route_reporting_complete` | False when the script sees an unknown or missing route. In that case `estimated_upstream_calls_for_gateway_leg` is `null`, rather than guessing that every unknown route called upstream. |
 
-The script counts only observed routes from its own calls. It does not inspect provider invoices or infer LLM token savings. Its `estimated_upstream_calls_for_gateway_leg` assumes the route header describes the server's behavior; reconcile with the authenticated gateway savings/proof report before making a public claim. Customer-entered upstream cost is **configured evidence**, not a verified charge. If no independent provider cost is known, monetary savings remain unknown.
+The script counts only observed routes from its own calls. It does not inspect provider invoices or infer LLM token savings. Its `estimated_upstream_calls_for_gateway_leg` assumes the route header describes the server's behavior; reconcile with an **independent upstream invocation counter** and the authenticated gateway savings/proof report before making a public claim. The direct leg also calls the upstream, so subtract those direct calls from a provider counter before attributing any difference to the gateway. Customer-entered upstream cost is **configured evidence**, not a verified charge. An upstream can report per-call cost in `X-Mithrandir-Upstream-Cost-Microusd` or MCP result metadata `io.mithrandir/costMicrousd`; Mithrandir labels that **provider-reported**, not independently invoiced. If no independent provider cost is known, monetary savings remain unknown.
 
 ## Two useful runs
 
 1. **Mechanism check:** repeat identical arguments a few times. This can confirm exact matching, but manufactured repetition says little about real demand.
 2. **Representative trace:** use genuine, consented read-only arguments from a normal workflow over time. Report the fraction of repeated eligible calls, full result agreement, route counts, distribution of latency, and independently supported upstream cost. Keep any identifying data private.
 
-A short run cannot establish the full decision-ready proof, which requires sufficient eligible traffic over 24 hours, reusable opportunities, and cost coverage. In Observe the gateway cannot avoid upstream work. The script never purchases Optimize or switches a gateway's mode. Check the live [proof method](https://mithrandir-production.up.railway.app/proof) and [pricing](https://mithrandir-production.up.railway.app/pricing) for current thresholds.
+A mismatch may be caused by changing upstream data between paired calls, not necessarily by the gateway. A match in a short run does not prove that responses will remain fresh throughout a TTL. Check verification matches, mismatches, and prevented stale candidates over time.
+
+A short run cannot establish the full decision-ready proof, which requires sufficient eligible traffic over 24 hours, reusable opportunities, and cost coverage. In Observe the gateway cannot avoid upstream work. The script never purchases Optimize or switches a gateway's mode. To assess net value, subtract the **actual subscription payment and other operating costs** from independently evidenced avoided upstream cost. Subscription-included reuse hits cannot produce a defensible net value for a single gateway until the account's subscription invoice is allocated to that gateway and period. Check the live [proof method](https://mithrandir-production.up.railway.app/proof) and [pricing](https://mithrandir-production.up.railway.app/pricing) for current thresholds.
+
+The repository's CI exercises the script against a local protocol fixture and mocked route accounting. It does not connect to a paid gateway, reconcile an upstream invoice or certify production interoperability. See [compatibility](compatibility.md).
