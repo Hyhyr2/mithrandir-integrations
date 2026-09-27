@@ -6,11 +6,11 @@ This public repository contains setup instructions and a small comparison client
 
 ## Get connected
 
-1. Open [Mithrandir setup](https://mithrandir-production.up.railway.app/start). Bring an existing public HTTPS MCP endpoint that you control. During the pilot, use synthetic or public non-sensitive data.
-2. Create a free Observe gateway and save the issued account key. It is shown only briefly; treat it like a password. The key is still needed once at Mithrandir's OAuth consent page.
-3. In an OAuth-capable HTTP MCP client such as VS Code, connect using the issued `/gateway/<id>/mcp` URL **without a key in the client configuration**. Your client opens Mithrandir's consent page, where you enter the saved key. Clients without OAuth can still send that key in a bearer header. See [the quickstart](docs/quickstart.md).
-4. Discover the upstream tools through the gateway, then explicitly approve only read tools you trust. Give per-call cost estimates only when you can support them.
-5. Route real repeated work through the gateway and inspect its proof. Decide whether Optimize is worthwhile for your workload. [How the measurement works](docs/measurement.md).
+1. Open [Mithrandir setup](https://mithrandir-production.up.railway.app/start). Bring an existing public HTTPS MCP endpoint that you control, or paste its VS Code / portable MCP JSON to fill the remote connection fields. During the pilot, use synthetic or public non-sensitive data.
+2. Create a free Observe gateway and save its account key. The key is shown only briefly. It is used once at Mithrandir's OAuth consent page, and never placed in the editor installation link.
+3. Click **Install in VS Code** or **Install in Cursor** on the setup page. Confirm the editor's MCP prompt, review the Mithrandir consent page, and enter the saved key. A manual configuration is available in [the quickstart](docs/quickstart.md).
+4. Mithrandir checks the connection and discovers tools automatically. Explicitly approve only safe reads you trust; choose their maximum result age and supported per-call cost estimates. Discovery does not execute a tool.
+5. To verify the mechanism without an agent prompt, you can choose an approved read, supply public or synthetic JSON arguments, and explicitly authorize three real upstream calls. Those calls may incur upstream costs. Inspect the proof, then route representative work through the gateway before deciding whether Optimize is worthwhile. [How the measurement works](docs/measurement.md).
 
 The public [`/mcp`](https://mithrandir-production.up.railway.app/mcp) endpoint exposes Mithrandir's own tools. It does not proxy your MCP server. Your issued `/gateway/<id>/mcp` URL does.
 
