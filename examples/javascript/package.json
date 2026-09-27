@@ -1,0 +1,14 @@
+{
+  "name": "mithrandir-javascript-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node client.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

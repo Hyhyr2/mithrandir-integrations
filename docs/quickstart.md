@@ -9,6 +9,10 @@ There is nothing to install locally. Bring an existing **public HTTPS MCP server
 5. If you want a controlled technical check, choose an approved read tool, enter public or synthetic JSON arguments, and explicitly authorize **three real upstream calls**. The upstream may charge for them. Mithrandir checks response stability and displays the proof; this short test is not a financial ROI result.
 6. Route representative agent work through the gateway. Observe forwards **every** call to your upstream. Review the proof after real traffic; `shadow_reusable` is a verified repeat, not an avoided call. Optimize requires an active entitlement and explicit activation for this gateway.
 
+## Connect from code
+
+If you are writing an agent or MCP client, use the ready-to-run [JavaScript / Node.js](javascript.md) or [Go](go.md) example. Each accepts the issued gateway URL and a Mithrandir key, connects with the official MCP SDK, and lists the available tools. A tool is called only when you explicitly set `MCP_TOOL` and its JSON arguments. The examples use the API-key path; this does not require your application to implement a browser OAuth callback. The separate upstream OAuth grant, if needed, is completed on Mithrandir's setup or connect page.
+
 ## Manual VS Code configuration
 
 If the one-click link does not open your editor, run **MCP: Open User Configuration** and merge the `mithrandir` entry into your existing `mcp.json`:
