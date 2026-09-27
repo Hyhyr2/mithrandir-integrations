@@ -17,7 +17,10 @@ import uuid
 from pathlib import Path
 from urllib.parse import urlsplit
 
-PROTOCOL = "2025-06-18"
+LEGACY_PROTOCOL = "2025-06-18"
+MODERN_PROTOCOL = "2026-07-28"
+HANDSHAKE_PROTOCOLS = {"2025-03-26", "2025-06-18", "2025-11-25"}
+CLIENT_INFO = {"name": "mithrandir-comparison", "version": "1.1"}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -31,7 +34,7 @@ OPENER = urllib.request.build_opener(NoRedirect)
 def https_url(value: str, *, gateway: bool = False) -> str:
     parts = urlsplit(value)
     if parts.scheme != "https" or not parts.hostname or parts.username or parts.password:
-        raise ValueError("MCP URLs must be public HTTPS URLs without embedded credentials")
+        raise ValueError("MCP URLs must use HTTPS without embedded credentials")
     if parts.query or parts.fragment:
         raise ValueError("MCP URLs must not contain a query or fragment")
     if gateway and ("/gateway/" not in parts.path or not parts.path.endswith("/mcp")):
@@ -40,14 +43,27 @@ def https_url(value: str, *, gateway: bool = False) -> str:
 
 
 def post(url: str, authorization: str | None, method: str, params: dict,
-         *, notification: bool = False) -> tuple[dict, float, dict]:
+         *, protocol: str = LEGACY_PROTOCOL, notification: bool = False) -> tuple[dict, float, dict]:
     request_id = uuid.uuid4().hex
-    body = {"jsonrpc": "2.0", "method": method, "params": params}
+    request_params = dict(params)
+    if protocol == MODERN_PROTOCOL:
+        request_params["_meta"] = {
+            "io.modelcontextprotocol/protocolVersion": MODERN_PROTOCOL,
+            "io.modelcontextprotocol/clientCapabilities": {},
+            "io.modelcontextprotocol/clientInfo": CLIENT_INFO,
+        }
+    elif protocol not in HANDSHAKE_PROTOCOLS:
+        raise ValueError(f"Unsupported MCP protocol version: {protocol}")
+    body = {"jsonrpc": "2.0", "method": method, "params": request_params}
     if not notification:
         body["id"] = request_id
     headers = {"Content-Type": "application/json",
                "Accept": "application/json, text/event-stream",
-               "MCP-Protocol-Version": PROTOCOL}
+               "MCP-Protocol-Version": protocol}
+    if protocol == MODERN_PROTOCOL:
+        headers["Mcp-Method"] = method
+        if method == "tools/call":
+            headers["Mcp-Name"] = request_params["name"]
     if authorization:
         headers["Authorization"] = authorization
     request = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"),
@@ -81,19 +97,27 @@ def post(url: str, authorization: str | None, method: str, params: dict,
     return payload["result"], elapsed_ms, response_headers
 
 
-def discover(url: str, authorization: str | None, tool_name: str) -> None:
-    init, _, _ = post(url, authorization, "initialize", {
-        "protocolVersion": PROTOCOL, "capabilities": {},
-        "clientInfo": {"name": "mithrandir-comparison", "version": "1.0"},
-    })
-    if init.get("protocolVersion") != PROTOCOL:
-        raise RuntimeError("The server negotiated an unsupported MCP version")
-    post(url, authorization, "notifications/initialized", {}, notification=True)
+def discover(url: str, authorization: str | None, tool_name: str,
+             *, protocol: str = LEGACY_PROTOCOL) -> str:
+    if protocol == MODERN_PROTOCOL:
+        discovery, _, _ = post(url, authorization, "server/discover", {}, protocol=protocol)
+        if MODERN_PROTOCOL not in discovery.get("supportedVersions", []):
+            raise RuntimeError("The server does not advertise MCP 2026-07-28")
+    else:
+        init, _, _ = post(url, authorization, "initialize", {
+            "protocolVersion": protocol, "capabilities": {}, "clientInfo": CLIENT_INFO,
+        }, protocol=protocol)
+        negotiated = init.get("protocolVersion")
+        if negotiated not in HANDSHAKE_PROTOCOLS:
+            raise RuntimeError("The server negotiated an unsupported MCP version")
+        protocol = negotiated
+        post(url, authorization, "notifications/initialized", {},
+             protocol=protocol, notification=True)
     cursor = None
     tool = None
     for _ in range(10):
         catalog, _, _ = post(url, authorization, "tools/list",
-                             {"cursor": cursor} if cursor else {})
+                             {"cursor": cursor} if cursor else {}, protocol=protocol)
         tool = next((item for item in catalog.get("tools", [])
                      if item.get("name") == tool_name), None)
         if tool:
@@ -106,6 +130,7 @@ def discover(url: str, authorization: str | None, tool_name: str) -> None:
     hints = tool.get("annotations") or {}
     if hints.get("readOnlyHint") is not True or hints.get("destructiveHint") is True:
         raise RuntimeError("Only explicitly read-only, non-destructive tools are accepted")
+    return protocol
 
 
 def arguments(args: argparse.Namespace) -> list[dict]:
@@ -131,6 +156,10 @@ def summarize(records: list[dict]) -> dict:
     routes = sorted({record["route"] for record in records})
     direct = [record["direct_ms"] for record in records]
     gateway = [record["gateway_ms"] for record in records]
+    forwarded_routes = {"upstream", "shadow_reusable", "verification_match",
+                        "verification_mismatch"}
+    reported_routes = forwarded_routes | {"reuse"}
+    routes_complete = all(record["route"] in reported_routes for record in records)
     return {
         "paired_calls": len(records),
         "full_result_matches": sum(record["equal"] for record in records),
@@ -145,8 +174,10 @@ def summarize(records: list[dict]) -> dict:
                                    "p50_ms": percentile([r["gateway_ms"] for r in records
                                                           if r["route"] == route], .5)}
                            for route in routes},
-        "estimated_upstream_calls_for_gateway_leg": sum(record["route"] != "reuse"
-                                                        for record in records),
+        "route_reporting_complete": routes_complete,
+        "estimated_upstream_calls_for_gateway_leg": (
+            sum(record["route"] in forwarded_routes for record in records)
+            if routes_complete else None),
         "upstream_cost_usd": "unknown unless independently measured or supplied",
         "llm_token_savings": "not measured",
     }
@@ -158,6 +189,9 @@ def main() -> int:
     parser.add_argument("--arguments", default=os.getenv("MCP_ARGS_JSON", "{}"))
     parser.add_argument("--calls", type=int, default=5)
     parser.add_argument("--trace", help="JSON array of real tools/call argument objects")
+    parser.add_argument("--protocol", choices=[LEGACY_PROTOCOL, MODERN_PROTOCOL],
+                        default=LEGACY_PROTOCOL,
+                        help="MCP wire revision for both legs (default: %(default)s)")
     args = parser.parse_args()
     if not 1 <= args.calls <= 500:
         parser.error("--calls must be between 1 and 500")
@@ -172,8 +206,8 @@ def main() -> int:
         parser.error(str(exc))
     upstream_auth = os.getenv("MCP_UPSTREAM_AUTHORIZATION")
     gateway_auth = f"Bearer {gateway_key}"
-    discover(direct_url, upstream_auth, args.tool)
-    discover(gateway_url, gateway_auth, args.tool)
+    direct_protocol = discover(direct_url, upstream_auth, args.tool, protocol=args.protocol)
+    gateway_protocol = discover(gateway_url, gateway_auth, args.tool, protocol=args.protocol)
     records = []
     for index, tool_args in enumerate(sample):
         results = {}
@@ -181,7 +215,8 @@ def main() -> int:
             url, auth = ((direct_url, upstream_auth) if leg == "direct"
                          else (gateway_url, gateway_auth))
             results[leg] = post(url, auth, "tools/call",
-                                {"name": args.tool, "arguments": tool_args})
+                                {"name": args.tool, "arguments": tool_args},
+                                protocol=direct_protocol if leg == "direct" else gateway_protocol)
         direct_result, direct_ms, _ = results["direct"]
         gateway_result, gateway_ms, headers = results["gateway"]
         records.append({"pair": index + 1, "equal": direct_result == gateway_result,
