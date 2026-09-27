@@ -7,14 +7,16 @@ This public repository contains setup instructions and a small comparison client
 ## Get connected
 
 1. Open [Mithrandir setup](https://mithrandir-production.up.railway.app/start). Bring an existing public HTTPS MCP endpoint that you control, or paste its VS Code / portable MCP JSON to fill the remote connection fields. During the pilot, use synthetic or public non-sensitive data.
-2. Create a free Observe gateway and save its account key. The key is shown only briefly. It is used once at Mithrandir's OAuth consent page, and never placed in the editor installation link.
-3. Click **Install in VS Code** or **Install in Cursor** on the setup page. Confirm the editor's MCP prompt, review the Mithrandir consent page, and enter the saved key. A manual configuration is available in [the quickstart](docs/quickstart.md).
-4. Mithrandir checks the connection and discovers tools automatically. Explicitly approve only safe reads you trust; choose their maximum result age and supported per-call cost estimates. Discovery does not execute a tool.
+2. Create a free Observe gateway and save its account key. If your upstream server advertises OAuth, Mithrandir discovers its provider and shows a sign-in link. Review the issuer and permissions, then grant access in the new browser tab. Servers without compatible OAuth can use a manually supplied Bearer token; public servers need neither. The Mithrandir key is shown only briefly and never placed in the editor installation link.
+3. Click **Install in VS Code** or **Install in Cursor** on the setup page. Confirm the editor's MCP prompt, review the *separate* Mithrandir client consent page, and enter the saved Mithrandir key. A manual configuration is available in [the quickstart](docs/quickstart.md).
+4. Mithrandir checks the upstream connection and discovers tools without executing a tool. Explicitly approve only safe reads you trust; choose their maximum result age and supported per-call cost estimates.
 5. To verify the mechanism without an agent prompt, you can choose an approved read, supply public or synthetic JSON arguments, and explicitly authorize three real upstream calls. Those calls may incur upstream costs. Inspect the proof, then route representative work through the gateway before deciding whether Optimize is worthwhile. [How the measurement works](docs/measurement.md).
 
 The public [`/mcp`](https://mithrandir-production.up.railway.app/mcp) endpoint exposes Mithrandir's own tools. It does not proxy your MCP server. Your issued `/gateway/<id>/mcp` URL does.
 
-**Access scope:** The default account mode shares eligible cached answers among holders of its account key. For reads whose results depend on a person's upstream permissions, an operator must issue a separate Mithrandir client key and provision a distinct upstream Bearer credential for each subject, then enable subject mode. In that mode the account key manages the gateway but cannot call its proxied tools. Mithrandir's OAuth authenticates the client to this gateway; it is not account sign-in or delegated OAuth to your upstream server. See [access and OAuth setup](docs/quickstart.md#access-for-more-than-one-person).
+**Access scope:** The default account mode shares eligible cached answers among holders of its account key. For reads whose results depend on a person's upstream permissions, an operator creates a separate Mithrandir client key per subject, then enables subject mode. Each subject can connect their own upstream OAuth provider with that key, or use a distinct manually supplied Bearer token. The account key manages subjects but cannot call their proxied tools. Client-to-Mithrandir OAuth and Mithrandir-to-upstream OAuth are separate grants. See [access and OAuth setup](docs/quickstart.md#access-for-more-than-one-person).
+
+An operator can also create an isolated person or agent key and share the returned `/connect/{gateway_id}` link separately from that key. The person opens the link, enters only their own client key and authorizes their upstream provider. They do not need the operator's account key.
 
 ## Run a transparent comparison
 
