@@ -6,3 +6,5 @@ __pycache__/
 *.log
 *trace.local.json
 *results.local.json
+node_modules/
+examples/go/mithrandir-go-example

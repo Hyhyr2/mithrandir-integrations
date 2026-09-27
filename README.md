@@ -14,6 +14,17 @@ This public repository contains setup instructions and a small comparison client
 
 The public [`/mcp`](https://mithrandir-production.up.railway.app/mcp) endpoint exposes Mithrandir's own tools. It does not proxy your MCP server. Your issued `/gateway/<id>/mcp` URL does.
 
+## Connect from your own application
+
+Use the issued gateway URL and your Mithrandir key in a ready-to-run example. The examples use the official MCP client SDKs, list tools on first run, and **never call a tool unless you explicitly name it**. No Python installation or knowledge of Mithrandir's server implementation is needed:
+
+| Language | Start here | Requires |
+| --- | --- | --- |
+| JavaScript / Node.js | [JavaScript quickstart](docs/javascript.md) | Node.js 22+ |
+| Go | [Go quickstart](docs/go.md) | Go 1.25+ |
+
+Both examples use `MITHRANDIR_GATEWAY_URL` and `MITHRANDIR_API_KEY` from your environment. Use the **Mithrandir** key issued by `/start`, not your upstream provider token. Do not put keys into code, command arguments, or GitHub. If your gateway uses subject mode, obtain your own bound client key from its operator; the account key cannot proxy subject calls. Client-side browser OAuth remains available for compatible editors as described in the [hosted quickstart](docs/quickstart.md).
+
 **Access scope:** The default account mode shares eligible cached answers among holders of its account key. For reads whose results depend on a person's upstream permissions, an operator creates a separate Mithrandir client key per subject, then enables subject mode. Each subject can connect their own upstream OAuth provider with that key, or use a distinct manually supplied Bearer token. The account key manages subjects but cannot call their proxied tools. Client-to-Mithrandir OAuth and Mithrandir-to-upstream OAuth are separate grants. See [access and OAuth setup](docs/quickstart.md#access-for-more-than-one-person).
 
 An operator can also create an isolated person or agent key and share the returned `/connect/{gateway_id}` link separately from that key. The person opens the link, enters only their own client key and authorizes their upstream provider. They do not need the operator's account key.

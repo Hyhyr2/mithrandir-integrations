@@ -17,3 +17,27 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: python -m compileall -q examples tests
       - run: python -m unittest discover -s tests -v
+
+  javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: examples/javascript/package-lock.json
+      - run: npm ci --prefix examples/javascript
+      - run: python tests/sdk_smoke.py javascript
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: examples/go/go.sum
+      - run: go mod tidy
+        working-directory: examples/go
+      - run: python tests/sdk_smoke.py go
