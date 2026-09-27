@@ -2,10 +2,16 @@
 
 There is nothing to install locally. Bring an existing **public HTTPS MCP server** that you control and a trusted HTTP MCP client. Mithrandir rejects upstream URLs with embedded credentials, query strings, fragments or private network destinations. For this pilot, use synthetic or public non-sensitive data.
 
-1. Open [setup](https://mithrandir-production.up.railway.app/start), enter your upstream MCP URL, accept the service terms and create a free Observe gateway. If your upstream needs a Bearer token, supply that upstream credential in setup. It is separate from your Mithrandir key and is not copied into the client configuration.
-2. Save the issued Mithrandir **account key** securely. The page shows it briefly and cannot recover it later. The new OAuth flow still needs this key at the consent page; OAuth is not a user account login.
-3. Select **Check connection and discover tools** on setup. This performs discovery, not a tool call. Approve only reads that you know have no side effects. `readOnlyHint: true` is an upstream declaration and does not replace your review.
-4. In VS Code, run **MCP: Open User Configuration**. Copy the issued gateway URL into `mcp.json` (merge its `servers.mithrandir` entry with your existing servers):
+1. Open [setup](https://mithrandir-production.up.railway.app/start). Enter your existing upstream MCP URL, or paste a VS Code `mcp.json` / portable `.mcp.json` configuration to fill in a remote HTTP server. Review the URL and optional literal upstream Authorization value before accepting the terms and creating a free Observe gateway. The imported JSON is cleared from the page after import. Local commands, unresolved credential variables, and non-Authorization custom headers cannot be imported.
+2. Save the issued Mithrandir **account key** securely. The page shows it briefly and cannot recover it later. This key is separate from the upstream credential and is needed once at the Mithrandir consent page.
+3. Click **Install in VS Code** or **Install in Cursor** on setup. The editor may ask you to confirm the MCP server. On first connection, review the client and return address on Mithrandir's consent page, then enter the saved key. The install link contains the gateway URL only. OAuth is client authorization to Mithrandir; it does not sign in to the upstream server.
+4. Mithrandir automatically checks `initialize` and `tools/list` without calling a tool. If discovery fails, the page shows the error and offers a retry. Explicitly approve only reads known to be free of side effects and set a maximum result age and credible per-call cost. `readOnlyHint: true` is an upstream declaration, not a substitute for review.
+5. If you want a controlled technical check, choose an approved read tool, enter public or synthetic JSON arguments, and explicitly authorize **three real upstream calls**. The upstream may charge for them. Mithrandir checks response stability and displays the proof; this short test is not a financial ROI result.
+6. Route representative agent work through the gateway. Observe forwards **every** call to your upstream. Review the proof after real traffic; `shadow_reusable` is a verified repeat, not an avoided call. Optimize requires an active entitlement and explicit activation for this gateway.
+
+## Manual VS Code configuration
+
+If the one-click link does not open your editor, run **MCP: Open User Configuration** and merge the `mithrandir` entry into your existing `mcp.json`:
 
 ```json
 {
@@ -18,8 +24,7 @@ There is nothing to install locally. Bring an existing **public HTTPS MCP server
 }
 ```
 
-5. Start the Mithrandir server entry. An OAuth-capable client should open Mithrandir's consent page. Check the client name and return address, then paste your saved account key. The client receives a short-lived token restricted to this gateway; no key appears in `mcp.json`.
-6. Run your usual agent workflow. Observe forwards **every** call to your upstream. Review the proof after representative traffic; `shadow_reusable` is an observed repeat, not a saving. Optimize needs an active entitlement and must be enabled for this gateway.
+Start the server entry and complete the same consent step. Do not put your Mithrandir key in the OAuth configuration.
 
 Use the **issued `/gateway/<id>/mcp` URL**, not the service's public `/mcp` endpoint, which exposes Mithrandir's own tools. The gateway URL alone does not make a local stdio server publicly accessible.
 
