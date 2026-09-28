@@ -14,6 +14,10 @@ This public repository contains setup instructions and a small comparison client
 
 The public [`/mcp`](https://mithrandir-production.up.railway.app/mcp) endpoint exposes Mithrandir's own discovery and trial tools. It does not proxy your MCP server. Your issued `/gateway/<id>/mcp` URL does. The [official MCP Registry entry](https://registry.modelcontextprotocol.io/?q=io.github.Hyhyr2%2Fmithrandir) points to that public discovery endpoint; use [setup](https://mithrandir-production.up.railway.app/start) for the guided connection.
 
+## Downloads and documentation
+
+You can use the hosted gateway without downloading anything. For a local connection check, [Releases](https://github.com/Hyhyr2/mithrandir-integrations/releases) provide the versioned `mithrandir-connect` command as an npm tarball with a checksum. The same client is also published to [GitHub Packages](https://github.com/Hyhyr2/mithrandir-integrations/packages), where npm installation requires GitHub registry authentication. Start with [downloads and versions](docs/releases.md), [hosted setup](docs/quickstart.md), or the [changelog](CHANGELOG.md). This is an integration client, not a downloadable copy of the hosted server.
+
 ## Connect from your own application
 
 Use the issued gateway URL and your Mithrandir key in a ready-to-run example. The examples use the official MCP client SDKs, list tools on first run, and **never call a tool unless you explicitly name it**. No Python installation or knowledge of Mithrandir's server implementation is needed:
@@ -22,6 +26,8 @@ Use the issued gateway URL and your Mithrandir key in a ready-to-run example. Th
 | --- | --- | --- |
 | JavaScript / Node.js | [JavaScript quickstart](docs/javascript.md) | Node.js 22+ |
 | Go | [Go quickstart](docs/go.md) | Go 1.25+ |
+
+The JavaScript CLI from a Release lists the same gateway tools without a clone: download the tarball, install it with Node.js, set the two environment variables, and run `mithrandir-connect`. [Installation details](docs/releases.md#install-the-command-from-a-release).
 
 Both examples use `MITHRANDIR_GATEWAY_URL` and `MITHRANDIR_API_KEY` from your environment. Use the **Mithrandir** key issued by `/start`, not your upstream provider token. Do not put keys into code, command arguments, or GitHub. If your gateway uses subject mode, obtain your own bound client key from its operator; the account key cannot proxy subject calls. Client-side browser OAuth remains available for compatible editors as described in the [hosted quickstart](docs/quickstart.md).
 

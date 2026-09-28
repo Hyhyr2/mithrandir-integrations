@@ -2,6 +2,8 @@
 
 This sample connects to **your existing Mithrandir gateway** and lists its tools. It makes no tool calls by default. You need Go 1.25+ and a gateway created at [Mithrandir setup](https://mithrandir-production.up.railway.app/start); Mithrandir itself stays hosted.
 
+The Go example is source code in this repository. It is not published as a Go library or a GitHub Package. You can download a [versioned source archive](https://github.com/Hyhyr2/mithrandir-integrations/releases/latest) to pin the example, or follow the clone steps below. See [downloads and versioning](releases.md).
+
 Copy the **issued** gateway URL (`/gateway/<id>/mcp`) and save the Mithrandir key shown during setup. If the upstream server uses OAuth, finish its provider authorization on the setup page first. Do not use the upstream provider token as your Mithrandir key. Clone this example repository, or [download its ZIP](https://github.com/Hyhyr2/mithrandir-integrations/archive/refs/heads/main.zip) and open the extracted folder.
 
 ### macOS / Linux

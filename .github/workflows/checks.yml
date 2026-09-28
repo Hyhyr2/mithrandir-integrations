@@ -29,6 +29,14 @@ jobs:
           cache-dependency-path: examples/javascript/package-lock.json
       - run: npm ci --prefix examples/javascript
       - run: python tests/sdk_smoke.py javascript
+      - name: Check packaged CLI
+        run: |
+          npm ci --ignore-scripts
+          npm pack --json --ignore-scripts > pack.json
+          tarball="$(node -p "JSON.parse(require('fs').readFileSync('pack.json', 'utf8'))[0].filename")"
+          mkdir -p "$RUNNER_TEMP/cli"
+          npm install --prefix "$RUNNER_TEMP/cli" --ignore-scripts "./$tarball"
+          MITHRANDIR_JS_EXECUTABLE="$RUNNER_TEMP/cli/node_modules/.bin/mithrandir-connect" python tests/sdk_smoke.py javascript
 
   go:
     runs-on: ubuntu-latest

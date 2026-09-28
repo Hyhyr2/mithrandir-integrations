@@ -7,4 +7,7 @@ __pycache__/
 *trace.local.json
 *results.local.json
 node_modules/
+*.tgz
+pack.json
+SHA256SUMS
 examples/go/mithrandir-go-example
