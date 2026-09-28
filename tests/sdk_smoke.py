@@ -88,7 +88,7 @@ class GatewayFixture(BaseHTTPRequestHandler):
 def exercise(language, env, tool=None):
     sample = ROOT / "examples" / language
     if language == "javascript":
-        cmd = ["node", "client.mjs"]
+        cmd = javascript_command()
     elif language == "go":
         cmd = ["go", "run", "."]
     else:
@@ -103,6 +103,11 @@ def exercise(language, env, tool=None):
     if completed.returncode:
         raise AssertionError(f"{language} failed: {completed.stderr}")
     return json.loads(completed.stdout)
+
+
+def javascript_command():
+    executable = os.environ.get("MITHRANDIR_JS_EXECUTABLE")
+    return [executable] if executable else ["node", "client.mjs"]
 
 
 def main(language):
@@ -124,7 +129,7 @@ def main(language):
         assert GatewayFixture.requests.count("tools/call") == 1, GatewayFixture.requests
 
         bad_env = dict(env, MITHRANDIR_API_KEY="wrong-fixture-key")
-        command = ["node", "client.mjs"] if language == "javascript" else ["go", "run", "."]
+        command = javascript_command() if language == "javascript" else ["go", "run", "."]
         rejected = subprocess.run(command, cwd=ROOT / "examples" / language,
                                   env=bad_env, text=True, capture_output=True,
                                   timeout=180, check=False)

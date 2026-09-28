@@ -1,0 +1,109 @@
+name: Release integration client
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - package-lock.json
+      - examples/javascript/client.mjs
+      - tests/sdk_smoke.py
+      - CHANGELOG.md
+      - docs/release-notes/**
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integration-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'Hyhyr2/mithrandir-integrations' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - name: Test the actual packed command
+        run: |
+          npm pack --json --ignore-scripts > pack.json
+          tarball="$(node -p "JSON.parse(require('fs').readFileSync('pack.json', 'utf8'))[0].filename")"
+          mkdir -p "$RUNNER_TEMP/cli"
+          npm install --prefix "$RUNNER_TEMP/cli" --ignore-scripts "./$tarball"
+          MITHRANDIR_JS_EXECUTABLE="$RUNNER_TEMP/cli/node_modules/.bin/mithrandir-connect" python tests/sdk_smoke.py javascript
+
+  release:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          tag="v$version"
+          test -f "docs/release-notes/$tag.md"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build tarball and checksum
+        if: steps.version.outputs.exists == 'false'
+        id: pack
+        run: |
+          npm pack --json --ignore-scripts > pack.json
+          tarball="$(node -p "JSON.parse(require('fs').readFileSync('pack.json', 'utf8'))[0].filename")"
+          sha256sum "$tarball" > SHA256SUMS
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+      - name: Create GitHub Release
+        if: steps.version.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" "${{ steps.pack.outputs.tarball }}" SHA256SUMS \
+            --target "$GITHUB_SHA" \
+            --title "Mithrandir integrations ${{ steps.version.outputs.tag }}" \
+            --notes-file "docs/release-notes/${{ steps.version.outputs.tag }}.md"
+
+  package:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: '@hyhyr2'
+      - run: npm ci --ignore-scripts
+      - name: Publish CLI to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if npm view "@hyhyr2/mithrandir-connect@$version" version --registry https://npm.pkg.github.com >/dev/null 2>&1; then
+            echo "Package version $version is already published."
+          else
+            npm publish --ignore-scripts --registry https://npm.pkg.github.com
+          fi

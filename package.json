@@ -1,0 +1,32 @@
+{
+  "name": "@hyhyr2/mithrandir-connect",
+  "version": "0.1.0",
+  "description": "A small CLI to inspect an existing hosted Mithrandir MCP gateway and optionally call a named tool",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hyhyr2/mithrandir-integrations.git"
+  },
+  "homepage": "https://github.com/Hyhyr2/mithrandir-integrations#readme",
+  "bin": {
+    "mithrandir-connect": "examples/javascript/client.mjs"
+  },
+  "files": [
+    "examples/javascript/client.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node --check examples/javascript/client.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

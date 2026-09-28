@@ -2,6 +2,8 @@
 
 This sample connects to **your existing Mithrandir gateway** and lists its tools. It makes no tool calls by default. You need Node.js 22+ and a gateway created at [Mithrandir setup](https://mithrandir-production.up.railway.app/start); the hosted service needs no Python installation on your machine.
 
+For the fewest local steps, download the `mithrandir-connect` npm tarball and checksum from the [latest GitHub Release](https://github.com/Hyhyr2/mithrandir-integrations/releases/latest), verify it, and run `npm install -g ./hyhyr2-mithrandir-connect-<version>.tgz`. Then follow the environment setup below and run `mithrandir-connect` in place of `node client.mjs`. The [release guide](releases.md) covers verification and optional GitHub Packages installation. To inspect or change the example source, use the clone instructions below.
+
 Copy the **issued** gateway URL (`/gateway/<id>/mcp`) and save the Mithrandir key shown during setup. If your upstream server uses OAuth, complete its provider authorization on the setup page first. These are separate credentials: never use an upstream token as `MITHRANDIR_API_KEY`. Clone this example repository, or [download its ZIP](https://github.com/Hyhyr2/mithrandir-integrations/archive/refs/heads/main.zip) and open the extracted folder.
 
 ### macOS / Linux

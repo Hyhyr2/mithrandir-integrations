@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 
 const rawUrl = process.env.MITHRANDIR_GATEWAY_URL;
