@@ -1,6 +1,6 @@
 # Mithrandir integrations
 
-Mithrandir is a hosted Savings Gateway for existing MCP servers. It forwards calls in free **Observe** mode and measures exact repeated reads. With an active Optimize entitlement, it can reuse eligible responses under explicit rules. A repeated call does not by itself prove a financial saving.
+Mithrandir is a hosted Savings Gateway for existing MCP servers. It forwards calls in free **Observe** mode and measures exact repeated reads. During the open test, a verified repeated approved read unlocks a bounded free Optimize trial; eligible responses can then be reused under explicit rules. A repeated call does not by itself prove a financial saving.
 
 This public repository contains setup instructions and a small comparison client. The hosted server implementation, operational configuration, customer data, and credentials are not here. You do **not** need to clone or install this repository to use the hosted service.
 
@@ -10,7 +10,7 @@ This public repository contains setup instructions and a small comparison client
 2. Create a free Observe gateway and save its account key. If your upstream server advertises OAuth, Mithrandir discovers its provider and shows a sign-in link. Review the issuer and permissions, then grant access in the new browser tab. Servers without compatible OAuth can use a manually supplied Bearer token; public servers need neither. The Mithrandir key is shown only briefly and never placed in the editor installation link.
 3. Click **Install in VS Code** or **Install in Cursor** on the setup page. Confirm the editor's MCP prompt, review the *separate* Mithrandir client consent page, and enter the saved Mithrandir key. A manual configuration is available in [the quickstart](docs/quickstart.md).
 4. Mithrandir checks the upstream connection and discovers tools without executing a tool. Explicitly approve only safe reads you trust; choose their maximum result age and supported per-call cost estimates.
-5. To verify the mechanism without an agent prompt, you can choose an approved read, supply public or synthetic JSON arguments, and explicitly authorize three real upstream calls. Those calls may incur upstream costs. Inspect the proof, then route representative work through the gateway before deciding whether Optimize is worthwhile. [How the measurement works](docs/measurement.md).
+5. Choose an approved read and explicitly authorize three real upstream calls with public or synthetic arguments. A verified repeat unlocks **Activate free Optimize** on this same gateway. Route representative work, inspect actual reuse receipts, and decide whether the mechanism helps your workload. Your upstream may charge for calls it receives. [How the measurement works](docs/measurement.md).
 
 The public [`/mcp`](https://mithrandir-production.up.railway.app/mcp) endpoint exposes Mithrandir's own tools. It does not proxy your MCP server. Your issued `/gateway/<id>/mcp` URL does.
 
@@ -31,7 +31,7 @@ An operator can also create an isolated person or agent key and share the return
 
 ## Run a transparent comparison
 
-[`examples/compare_gateway.py`](examples/compare_gateway.py) sends paired, identical read calls directly to your upstream and through an **existing** gateway. It reports full JSON result agreement, per-call time, Mithrandir route, and proof receipt identifiers. It does not create a gateway, buy a subscription, change modes, or authorize prepaid charges.
+[`examples/compare_gateway.py`](examples/compare_gateway.py) sends paired, identical read calls directly to your upstream and through an **existing** gateway. It reports full JSON result agreement, per-call time, Mithrandir route, and proof receipt identifiers. It does not create a gateway, change modes, or authorize charges.
 
 ```bash
 python examples/compare_gateway.py --help
@@ -39,7 +39,7 @@ python examples/compare_gateway.py --help
 
 Use fixed arguments to check the mechanism, then a representative trace to assess your own work. A short synthetic repeat is not a return-on-investment result. See [measurement setup and interpretation](docs/measurement.md).
 
-The comparison script uses an API key for its raw HTTP calls; it does not run a browser OAuth flow. It supports the `2025-06-18` handshake by default and an explicit `--protocol 2026-07-28` stateless run. Its CI uses a local protocol fixture and mocked accounting, **not** a live paid gateway. See [tested compatibility](docs/compatibility.md).
+The comparison script uses an API key for its raw HTTP calls; it does not run a browser OAuth flow. It supports the `2025-06-18` handshake by default and an explicit `--protocol 2026-07-28` stateless run. Its CI uses a local protocol fixture and mocked accounting, **not** a live hosted gateway. See [tested compatibility](docs/compatibility.md).
 
 ## Current boundaries
 
@@ -49,9 +49,9 @@ The comparison script uses an API key for its raw HTTP calls; it does not run a 
 | Exact, operator-approved, read-only `tools/call` | Effectful, sessionful, SSE, or long-lived stream reuse |
 | Full JSON result comparison and measured request time | Inferred LLM token savings or independently verified provider bills |
 
-Observe forwards every call to your upstream. `shadow_reusable` is evidence of a potential repeat, not an avoided call. Only a `reuse` route in Optimize represents an actual avoided upstream call. The [service contract](https://mithrandir-production.up.railway.app/service-contract), [pricing](https://mithrandir-production.up.railway.app/pricing), and [proof method](https://mithrandir-production.up.railway.app/proof) on the live service take precedence over this example.
+Observe forwards every call to your upstream. `shadow_reusable` is evidence of a potential repeat, not an avoided call. Only a `reuse` route in Optimize represents an actual avoided upstream call. The [service contract](https://mithrandir-production.up.railway.app/service-contract), [free test](https://mithrandir-production.up.railway.app/pricing), and [proof method](https://mithrandir-production.up.railway.app/proof) on the live service take precedence over this example.
 
-The hosted Optimize subscription is currently advertised at **$24.50/month**, with up to **100,000 successful reuse hits per UTC month**. Those are included hits, not guaranteed savings. For example, at an independently established avoided upstream cost of $0.01 per call, more than 2,450 real reuse hits are needed just to cover the subscription, before other costs. Provider-reported costs and operator estimates are labeled separately; neither verifies a bill. Subscription cost cannot be assigned to an individual gateway's ROI without account-wide invoice attribution.
+The open test allows up to **500 gateway calls over 72 hours** and **100 successful reuse hits**. No Mithrandir charge or card is required. After the reuse allowance, eligible calls pass through to your upstream; after the call or time limit, the gateway stops. Your upstream may still charge for forwarded and verification calls. A provider invoice or independent rate card is needed to validate a financial claim.
 
 ## Contributing and security
 

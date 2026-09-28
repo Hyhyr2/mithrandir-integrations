@@ -31,7 +31,7 @@ Replace the tool and arguments with a valid read call. The script prompts for th
 | `direct_ms`, `gateway_ms` | Client-observed request time; p50/p95 are descriptive for this sample and depend on network and order. |
 | `route: upstream` | The gateway called the upstream. |
 | `route: shadow_reusable` | Observe saw a stable exact repeat, but **still called** the upstream. Actual avoided calls: zero. |
-| `route: reuse` | With an existing Optimize entitlement, a response was delivered without that upstream call. |
+| `route: reuse` | With free Optimize active and within the test allowance, a response was delivered without that upstream call. |
 | `route: verification_match` or `verification_mismatch` | Reliability check called the upstream; a mismatch serves the fresh result. |
 | `receipt_id` | Identifier for the gateway's authenticated proof receipt; no third-party attestation is implied. |
 | `route_reporting_complete` | False when the script sees an unknown or missing route. In that case `estimated_upstream_calls_for_gateway_leg` is `null`, rather than guessing that every unknown route called upstream. |
@@ -45,6 +45,6 @@ The script counts only observed routes from its own calls. It does not inspect p
 
 A mismatch may be caused by changing upstream data between paired calls, not necessarily by the gateway. A match in a short run does not prove that responses will remain fresh throughout a TTL. Check verification matches, mismatches, and prevented stale candidates over time.
 
-A short run cannot establish the full decision-ready proof, which requires sufficient eligible traffic over 24 hours, reusable opportunities, and cost coverage. In Observe the gateway cannot avoid upstream work. The script never purchases Optimize or switches a gateway's mode. To assess net value, subtract the **actual subscription payment and other operating costs** from independently evidenced avoided upstream cost. Subscription-included reuse hits cannot produce a defensible net value for a single gateway until the account's subscription invoice is allocated to that gateway and period. Check the live [proof method](https://mithrandir-production.up.railway.app/proof) and [pricing](https://mithrandir-production.up.railway.app/pricing) for current thresholds.
+A short run cannot establish the full decision-ready proof, which requires sufficient eligible traffic over 24 hours, reusable opportunities and cost coverage. In Observe the gateway cannot avoid upstream work. The script never switches the gateway's mode; enable the bounded free Optimize test on the setup page after one verified repeated read. Measure actual avoided calls, result agreement and provider cost evidence before claiming a financial saving. The test does not charge a Mithrandir fee; forwarded and verification calls may still cost money at your upstream. Check the live [proof method](https://mithrandir-production.up.railway.app/proof) and [test limits](https://mithrandir-production.up.railway.app/pricing).
 
-The repository's CI exercises the script against a local protocol fixture and mocked route accounting. It does not connect to a paid gateway, reconcile an upstream invoice or certify production interoperability. See [compatibility](compatibility.md).
+The repository's CI exercises the script against a local protocol fixture and mocked route accounting. It does not connect to a live hosted gateway, reconcile an upstream invoice or certify production interoperability. See [compatibility](compatibility.md).
