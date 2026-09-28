@@ -12,7 +12,7 @@ This public repository contains setup instructions and a small comparison client
 4. Mithrandir checks the upstream connection and discovers tools without executing a tool. Explicitly approve only safe reads you trust; choose their maximum result age and supported per-call cost estimates.
 5. Choose an approved read and explicitly authorize three real upstream calls with public or synthetic arguments. A verified repeat unlocks **Activate free Optimize** on this same gateway. Route representative work, inspect actual reuse receipts, and decide whether the mechanism helps your workload. Your upstream may charge for calls it receives. [How the measurement works](docs/measurement.md).
 
-The public [`/mcp`](https://mithrandir-production.up.railway.app/mcp) endpoint exposes Mithrandir's own tools. It does not proxy your MCP server. Your issued `/gateway/<id>/mcp` URL does.
+The public [`/mcp`](https://mithrandir-production.up.railway.app/mcp) endpoint exposes Mithrandir's own discovery and trial tools. It does not proxy your MCP server. Your issued `/gateway/<id>/mcp` URL does. The [official MCP Registry entry](https://registry.modelcontextprotocol.io/?q=io.github.Hyhyr2%2Fmithrandir) points to that public discovery endpoint; use [setup](https://mithrandir-production.up.railway.app/start) for the guided connection.
 
 ## Connect from your own application
 

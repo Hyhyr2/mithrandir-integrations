@@ -1,0 +1,32 @@
+name: Publish Mithrandir to MCP Registry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - server.json
+      - .github/workflows/publish-mcp.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install official MCP publisher
+        run: |
+          url="https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz"
+          curl --fail --location --silent --show-error "$url" -o publisher.tar.gz
+          tar -xzf publisher.tar.gz mcp-publisher
+      - name: Validate registry metadata
+        run: ./mcp-publisher validate
+      - name: Authenticate as repository owner
+        run: ./mcp-publisher login github-oidc
+      - name: Publish hosted server metadata
+        run: ./mcp-publisher publish
