@@ -35,6 +35,8 @@ Both examples use `MITHRANDIR_GATEWAY_URL` and `MITHRANDIR_API_KEY` from your en
 
 An operator can also create an isolated person or agent key and share the returned `/connect/{gateway_id}` link separately from that key. The person opens the link, enters only their own client key and authorizes their upstream provider. They do not need the operator's account key.
 
+**Operator guardrails:** In the [dashboard](https://mithrandir-production.up.railway.app/dashboard), assign exact tool access to each bound person, set per-tool call limits, and optionally stop a failing upstream tool after repeated 5xx or connection errors. See [tool access and failure guards](docs/quickstart.md#manage-tools-and-failing-upstreams).
+
 ## Run a transparent comparison
 
 [`examples/compare_gateway.py`](examples/compare_gateway.py) sends paired, identical read calls directly to your upstream and through an **existing** gateway. It reports full JSON result agreement, per-call time, Mithrandir route, and proof receipt identifiers. It does not create a gateway, change modes, or authorize charges.

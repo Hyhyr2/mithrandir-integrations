@@ -64,6 +64,14 @@ For subject mode, use setup or the management API to create each subject, switch
 
 There are two distinct OAuth roles. For **upstream access**, Mithrandir discovers Protected Resource Metadata and the provider's metadata, prefers its hosted Client ID Metadata Document (CIMD), falls back to Dynamic Client Registration (DCR), checks PKCE state and issuer, encrypts the resulting grant and renews it when possible. A provider that supports neither registration method requires a manual token. For **editor access**, Mithrandir's gateway supports authorization code with S256 PKCE, protected-resource discovery, consent, rotating refresh tokens and DCR; this client-facing flow does **not** yet offer CIMD. Clients that require CIMD without DCR need the API-key path or another compatible client. See [compatibility details](compatibility.md).
 
+## Manage tools and failing upstreams
+
+Open the [dashboard](https://mithrandir-production.up.railway.app/dashboard) with the saved **operator** key. Under **Tool access by person**, select a bound person and enter exact tool names, one per line. A person then sees only those tools in `tools/list` and receives HTTP 403 for any other `tools/call`. An empty list blocks every tool; **Allow every tool** restores the original behavior. This is separate from approving safe reads for cache reuse. Standard JSON discovery is supported; a constrained connection fails closed if the upstream returns a streaming or malformed tool list.
+
+Under **Tool call guardrails**, set a request cap per tool and per bound person. Under **Upstream failure guard**, optionally choose how many HTTP 5xx or connection failures open the guard, and how long it waits. The affected tool then returns HTTP 503; other tools continue. One request checks recovery after the cooldown. Mithrandir does not automatically retry effectful calls. The dashboard shows guard state and counts of access denials, rate blocks, circuit blocks and upstream failures without storing tool arguments or response bodies in that log.
+
+The operator API also accepts `PUT /v1/gateways/{gateway_id}/subjects/{subject_id}/tools` with `{"allowed_tools":["repo.read"]}`. Use `{"allowed_tools":[]}` to block all tools for that person or `{"allowed_tools":null}` to restore unrestricted access. The gateway policy update accepts `tool_circuit_breakers` and `tool_rate_limits_per_minute`; see the hosted service's `/openapi.json` for field bounds. Changing these policies invalidates cached reuse proof. Guards are optional and existing connections retain access until an operator configures them.
+
 ## Common setup failures
 
 | Symptom | Check |
