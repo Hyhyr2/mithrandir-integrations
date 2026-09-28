@@ -7,7 +7,7 @@ There is nothing to install locally. Bring an existing **public HTTPS MCP server
 3. Click **Install in VS Code** or **Install in Cursor** on setup. The editor may ask you to confirm the MCP server. On first connection, review the client and return address on Mithrandir's *separate* consent page, then enter the saved Mithrandir key. The install link contains the gateway URL only. This editor authorization does not expose an upstream token to the editor.
 4. Mithrandir checks `initialize` and `tools/list` without calling a tool. If discovery fails, the page shows the error and offers a retry. Explicitly approve only reads known to be free of side effects and set a maximum result age and credible per-call cost. `readOnlyHint: true` is an upstream declaration, not a substitute for review.
 5. If you want a controlled technical check, choose an approved read tool, enter public or synthetic JSON arguments, and explicitly authorize **three real upstream calls**. The upstream may charge for them. Mithrandir checks response stability and displays the proof; this short test is not a financial ROI result.
-6. Route representative agent work through the gateway. Observe forwards **every** call to your upstream. Review the proof after real traffic; `shadow_reusable` is a verified repeat, not an avoided call. Optimize requires an active entitlement and explicit activation for this gateway.
+6. Route representative agent work through the gateway. Observe forwards **every** call to your upstream. Review the proof after real traffic; `shadow_reusable` is a verified repeat, not an avoided call. After a verified repeated approved read, click **Activate free Optimize** on this gateway. The test is bounded to 500 calls over 72 hours, including up to 100 successful reuse hits; no card is required.
 
 ## Connect from code
 
@@ -73,7 +73,7 @@ There are two distinct OAuth roles. For **upstream access**, Mithrandir discover
 | 401 after consent | Use the correct account key in account mode or the bound client key in subject mode. Complete both upstream and editor authorization if required. Retry after key rotation or revoked provider access. |
 | Tool absent | Run `tools/list` through the gateway and verify the upstream exposes it for that account or subject. |
 | No repeat evidence | Approve the tool, use exactly matching arguments and stable results, and stay within its TTL on stateless JSON reads. |
-| No reuse in Observe | Expected: Observe always forwards. Optimize requires an entitlement and explicit gateway mode. |
+| No reuse in Observe | Expected: Observe always forwards. After a verified repeated approved read, explicitly activate free Optimize on the same gateway. |
 | SSE or sessions | Completed bounded SSE and sessionful POST calls can pass through without reuse. Long-lived SSE, GET subscriptions and DELETE session termination are unsupported. |
 
 For current limits and terms, read the live [machine-readable quickstart](https://mithrandir-production.up.railway.app/quickstart.json) and [service contract](https://mithrandir-production.up.railway.app/service-contract).
